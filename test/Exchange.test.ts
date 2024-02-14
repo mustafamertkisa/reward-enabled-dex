@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { ZeroAddress } from "ethers";
 import {
   Exchange,
   Exchange__factory,
