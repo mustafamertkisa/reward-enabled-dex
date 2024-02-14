@@ -1,37 +1,69 @@
-# Exchange and Reward Contracts
+# Exchange Contract
 
-This project consists of two Solidity smart contracts: Exchange and Reward. The Exchange contract facilitates trading on an exchange platform, while the Reward contract distributes rewards to traders based on their trading activity.
+This Solidity contract serves as the backbone of an exchange platform, facilitating trading activities and rewarding traders based on their participation. Here's an overview of its functionalities:
 
-## Contracts
+## Features:
 
-### Exchange
+1. **Periodic Reward Distribution**: Traders are rewarded periodically based on their trading activity within each period.
 
-The Exchange contract allows traders to open and close trading positions. It tracks traders' cumulative trading volumes and calculates rewards based on trading activity.
+2. **Trader Information Management**: The contract maintains essential information about traders, including their cumulative trading volume, last trade time, and total rewards earned.
 
-#### Functions
+3. **Position Management**: Traders can open and close trading positions, specifying the volume and type (long or short) of each position.
 
-- `openPosition(uint256 volume)`: Opens a trading position with the specified volume for the calling trader.
-- `closePosition(uint256 volume)`: Closes a trading position with the specified volume for the calling trader.
-- `claimReward(address traderAddress)`: Claims rewards for a trader based on their trading activity.
-- `getCumulativeTradingVolume(address traderAddress)`: Returns the cumulative trading volume of a trader.
-- `getTraderCurrentPeriodVolume(address traderAddress)`: Returns the trading volume of a trader in the current period.
-- `getTraderCurrentPeriodStatus(address traderAddress)`: Returns the status of a trader's position in the current period.
-- `getCumulativeMarketVolume(uint256 period)`: Returns the cumulative market volume for a specific period.
+4. **Reward Calculation and Distribution**: Rewards are calculated based on a predefined reward rate per period and distributed to traders accordingly.
 
-### Reward
+5. **Integration with Reward Contract**: The contract interfaces with an external reward contract (`IReward`) to facilitate the distribution of rewards.
 
-The Reward contract distributes rewards to traders based on their trading activity as recorded by the Exchange contract.
+6. **Helper Functions**: Various helper functions are provided to retrieve trader information, such as cumulative trading volume, current period trading volume, position status, and cumulative market volume.
 
-#### Functions
+## Usage:
 
-- `distributeReward(address traderAddress, uint256 rewardAmount)`: Distributes rewards to a trader based on their trading activity.
-- `setExchangeContract(address _exchangeContract)`: Sets the address of the associated Exchange contract.
-- `withdraw()`: Allows the contract owner to withdraw any remaining balance in the contract.
+- **Constructor**: Upon deployment, the contract initializes with the address of the reward contract and sets the period start time.
 
-## Usage
+- **Open Position**: Traders can open new trading positions by specifying the volume and type of position (long or short).
 
-To use these contracts, deploy them to an Ethereum-compatible blockchain network using a tool like Hardhat or Truffle. Once deployed, interact with the contracts using a web3 provider or directly through a blockchain explorer.
+- **Close Position**: Traders can close their existing trading positions by specifying the volume to close.
 
-## Testing
+- **Claim Reward**: Traders can claim their rewards, which are calculated based on their trading activity and the total market volume within each period.
 
-Unit tests can be written using testing frameworks such as Hardhat. Test cases should cover various scenarios, including opening and closing positions, claiming rewards, and contract interactions.
+- **Helper Functions**: Several functions are provided to retrieve trader-related information and market volume data.
+
+# Reward Contract
+
+This Solidity contract facilitates the distribution of rewards to traders based on their trading activity. Here's an overview of its functionalities:
+
+## Features:
+
+1. **Reward Distribution**: Traders receive rewards based on their trading activity, with rewards distributed periodically.
+
+2. **Owner Management**: The contract owner can set the associated exchange contract and withdraw the contract's balance.
+
+3. **Integration with ERC20 Token**: The contract interacts with an external ERC20 token contract (`IMockERC20`) to distribute rewards in tokens.
+
+## Usage:
+
+- **Constructor**: Upon deployment, the contract initializes with the address of the mock ERC20 token contract.
+
+- **Distribute Reward**: Only the associated exchange contract can call this function to distribute rewards to traders. Rewards are transferred directly from the contract to the trader's address.
+
+- **Set Exchange Contract**: The owner can set the address of the associated exchange contract using this function.
+
+- **Withdraw**: The owner can withdraw the contract's balance to their address.
+
+# MockToken Contract
+
+This Solidity contract implements a mock ERC20 token. It utilizes OpenZeppelin's ERC20 implementation and Ownable contract for enhanced security and functionality.
+
+## Features:
+
+1. **ERC20 Implementation**: This contract implements the ERC20 standard, providing functionalities such as transfer, allowance, and balance inquiries.
+
+2. **Ownable**: The contract inherits from the Ownable contract, allowing the owner to manage certain functions and properties of the token.
+
+## Usage:
+
+- **Constructor**: Upon deployment, the contract initializes the ERC20 token with a name ("MockToken"), symbol ("MTK"), and initial supply of tokens.
+
+- **Minting Tokens**: The initial supply of tokens (1,000,000) is minted and assigned to the contract owner upon deployment.
+
+- **Transfer and Balance**: Users can transfer tokens to other addresses and check their token balances using standard ERC20 functions.
