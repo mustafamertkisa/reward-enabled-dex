@@ -18,7 +18,11 @@ contract Reward {
     mapping(address => uint256) public rewards; // trader => period => check reward
 
     // Event emitted when a reward is distributed
-    event RewardDistributed(address indexed traderAddress, uint256 reward);
+    event RewardDistributed(
+        address indexed traderAddress,
+        uint256 reward,
+        uint256 timestamp
+    );
 
     /// @dev Modifier to restrict access to only the associated exchange contract
     modifier onlyExchange() {
@@ -49,11 +53,6 @@ contract Reward {
         address traderAddress,
         uint256 rewardAmount
     ) external onlyExchange {
-        require(
-            rewards[traderAddress] == 0,
-            "Reward for this period has already been distributed"
-        );
-
         // Ensure the reward contract has enough balance
         require(
             mockTokenContract.balanceOf(address(this)) >= rewardAmount,
@@ -68,13 +67,22 @@ contract Reward {
             mockTokenContract.transfer(traderAddress, rewardAmount);
         }
 
-        emit RewardDistributed(traderAddress, rewardAmount);
+        emit RewardDistributed(traderAddress, rewardAmount, block.timestamp);
     }
 
     /// @notice Sets the address of the associated exchange contract
     /// @param _exchangeContract Address of the exchange contract
     function setExchangeContract(address _exchangeContract) external onlyOwner {
         exchangeContract = _exchangeContract;
+    }
+
+    /// @notice Gets the withdrawn reward for a trader
+    /// @param traderAddress Address of the trader
+    /// @return Withdrawn reward for the trader
+    function getTraderWithdrawnReward(
+        address traderAddress
+    ) public view returns (uint256) {
+        return rewards[traderAddress];
     }
 
     /// @notice Withdraws the contract's balance to the owner

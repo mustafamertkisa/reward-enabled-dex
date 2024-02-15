@@ -23,10 +23,15 @@ describe("ExchangeContract", function () {
   let trader2: HardhatEthersSigner;
   let trader3: HardhatEthersSigner;
   let trader4: HardhatEthersSigner;
+  let trader5: HardhatEthersSigner;
+  let isOpen: boolean;
+  let isLong: boolean;
+  let amount: bigint;
 
   before(async function () {
     // Get signers (accounts) from ethers
-    [owner, trader1, trader2, trader3, trader4] = await ethers.getSigners();
+    [owner, trader1, trader2, trader3, trader4, trader5] =
+      await ethers.getSigners();
 
     // Get contract factories for MockToken, Reward, and Exchange contracts
     mockTokenContractFactory = (await ethers.getContractFactory(
@@ -80,6 +85,60 @@ describe("ExchangeContract", function () {
     ).to.be.revertedWith("Volume cannot be 0");
   });
 
+  it("Should allow trading and claiming rewards over multiple periods", async function () {
+    const periods = 100;
+    let cumulativeVolume = 0;
+
+    // Perform trading actions and claim rewards over multiple periods
+    for (let i = 0; i < periods; i++) {
+      // Open a new trading position
+      const volume = i + 100; // Volume can be any value for demonstration purposes
+      isOpen = true;
+      isLong = true;
+      await exchangeContract
+        .connect(trader5)
+        .newPosition(volume, isOpen, isLong);
+
+      cumulativeVolume += volume;
+      isOpen = false;
+      await exchangeContract
+        .connect(trader5)
+        .newPosition(volume, isOpen, isLong);
+
+      // Check the cumulative trading volume and claimed rewards
+      const traderVolume = await exchangeContract.getCumulativeTradingVolume(
+        trader5.address
+      );
+
+      expect(traderVolume).to.equal(
+        cumulativeVolume,
+        "Cumulative trading volume should match expected"
+      );
+
+      const traderReward = await exchangeContract.getTraderReward(
+        trader5.address
+      );
+
+      expect(traderReward).to.not.equal(
+        0,
+        "Traders should have claimed rewards"
+      );
+
+      // Claim the rewards
+      const tokenBalanceTrader5 = await mockTokenContract.balanceOf(
+        trader5.address
+      );
+
+      await exchangeContract.connect(trader5).claimReward();
+
+      const newTokenBalanceTrader5 = await mockTokenContract.balanceOf(
+        trader5.address
+      );
+
+      expect(newTokenBalanceTrader5).to.be.greaterThan(tokenBalanceTrader5);
+    }
+  });
+
   describe("Should execute the scenario as described", async function () {
     it("Period 1", async function () {
       const currentPeriod = formatEtherValue(
@@ -87,9 +146,9 @@ describe("ExchangeContract", function () {
       );
 
       // T1
-      let amount: bigint = ethers.parseEther("100000");
-      let isOpen: boolean = true;
-      let isLong: boolean = true;
+      amount = ethers.parseEther("100000");
+      isOpen = true;
+      isLong = true;
       await exchangeContract
         .connect(trader1)
         .newPosition(amount, isOpen, isLong); // Trader1: open position 100K long
@@ -114,6 +173,10 @@ describe("ExchangeContract", function () {
       await exchangeContract
         .connect(trader2)
         .newPosition(amount, isOpen, isLong); // Trader2: close 50% of position 25K long
+
+      const periodStatusTrader2 =
+        await exchangeContract.getTraderCurrentPeriodStatus(trader2.address);
+      expect(periodStatusTrader2).to.be.true;
 
       isOpen = true;
       await exchangeContract
@@ -162,9 +225,9 @@ describe("ExchangeContract", function () {
       const currentPeriod = await exchangeContract.getCurrentPeriod();
 
       // T5
-      let amount: bigint = ethers.parseEther("100000");
-      let isOpen: boolean = true;
-      let isLong: boolean = false;
+      amount = ethers.parseEther("100000");
+      isOpen = true;
+      isLong = false;
       await exchangeContract
         .connect(trader4)
         .newPosition(amount, isOpen, isLong); // Trader4: open position 100K short
@@ -230,9 +293,9 @@ describe("ExchangeContract", function () {
       const currentPeriod = await exchangeContract.getCurrentPeriod();
 
       // T7
-      let amount: bigint = ethers.parseEther("100000");
-      let isOpen: boolean = true;
-      let isLong: boolean = false;
+      amount = ethers.parseEther("100000");
+      isOpen = true;
+      isLong = false;
       await exchangeContract
         .connect(trader1)
         .newPosition(amount, isOpen, isLong);
@@ -335,19 +398,32 @@ describe("ExchangeContract", function () {
 
     it("Period 5", async function () {
       // T9: Claim rewards for all traders
-      await expect(exchangeContract.claimReward(trader1.address)).to.emit(
+      const earnedRewardTrader1 = await exchangeContract.getTraderReward(
+        trader1.address
+      );
+      const earnedRewardTrader2 = await exchangeContract.getTraderReward(
+        trader2.address
+      );
+      const earnedRewardTrader3 = await exchangeContract.getTraderReward(
+        trader3.address
+      );
+      const earnedRewardTrader4 = await exchangeContract.getTraderReward(
+        trader4.address
+      );
+
+      await expect(exchangeContract.connect(trader1).claimReward()).to.emit(
         rewardContract,
         "RewardDistributed"
       );
-      await expect(exchangeContract.claimReward(trader2.address)).to.emit(
+      await expect(exchangeContract.connect(trader2).claimReward()).to.emit(
         rewardContract,
         "RewardDistributed"
       );
-      await expect(exchangeContract.claimReward(trader3.address)).to.emit(
+      await expect(exchangeContract.connect(trader3).claimReward()).to.emit(
         rewardContract,
         "RewardDistributed"
       );
-      await expect(exchangeContract.claimReward(trader4.address)).to.emit(
+      await expect(exchangeContract.connect(trader4).claimReward()).to.emit(
         rewardContract,
         "RewardDistributed"
       );
@@ -389,12 +465,24 @@ describe("ExchangeContract", function () {
       expect(trader3Balance).greaterThan(0);
       expect(trader4Balance).greaterThan(0);
 
+      const withdrawnRewardTrader1 =
+        await rewardContract.getTraderWithdrawnReward(trader1.address);
+      const withdrawnRewardTrader2 =
+        await rewardContract.getTraderWithdrawnReward(trader2.address);
+      const withdrawnRewardTrader3 =
+        await rewardContract.getTraderWithdrawnReward(trader3.address);
+      const withdrawnRewardTrader4 =
+        await rewardContract.getTraderWithdrawnReward(trader4.address);
+
+      expect(earnedRewardTrader1).to.be.equal(withdrawnRewardTrader1);
+      expect(earnedRewardTrader2).to.be.equal(withdrawnRewardTrader2);
+      expect(earnedRewardTrader3).to.be.equal(withdrawnRewardTrader3);
+      expect(earnedRewardTrader4).to.be.equal(withdrawnRewardTrader4);
+
       // Should revert if reward for the period has already been distributed
       await expect(
-        exchangeContract.claimReward(trader1.address)
-      ).to.be.revertedWith(
-        "Reward for this period has already been distributed"
-      );
+        exchangeContract.connect(trader1).claimReward()
+      ).to.be.revertedWith("Reward cannot be 0");
     });
   });
 });

@@ -16,7 +16,6 @@ contract Exchange {
         uint256 lastTradeTime; // Timestamp of the last trade
         uint256 cumulativeTradingVolume; // Total trading volume of the trader
         uint256 totalReward; // Total reward earned by the trader
-        uint256 earnedReward;
     }
 
     struct Period {
@@ -88,11 +87,11 @@ contract Exchange {
     }
 
     /// @notice Calculates the reward for a trader based on their trading activity
-    /// @param traderAdress Address of the trader
+    /// @param traderAddress Address of the trader
     /// @param volume Volume of the trade
-    function calculateReward(address traderAdress, uint256 volume) private {
+    function calculateReward(address traderAddress, uint256 volume) private {
         uint256 currentPeriod = getCurrentPeriod();
-        Trader storage trader = traders[traderAdress];
+        Trader storage trader = traders[traderAddress];
         Period storage period = periods[currentPeriod];
 
         if (trader.lastTradeTime == 0) {
@@ -106,7 +105,7 @@ contract Exchange {
         require(period.marketVolume > 0, "Division market volume by zero");
         uint256 rewardResult = (timeDifference * volume) / period.marketVolume;
 
-        if (traderPeriodStatus[traderAdress][currentPeriod]) {
+        if (traderPeriodStatus[traderAddress][currentPeriod]) {
             rewardResult = (rewardResult * REWARD_RATE) / 1000;
         }
 
@@ -114,15 +113,19 @@ contract Exchange {
     }
 
     /// @notice Allows a trader to claim their earned rewards
-    /// @param traderAddress Address of the trader
-    function claimReward(address traderAddress) external {
+    function claimReward() external {
         uint256 currentPeriod = getCurrentPeriod();
-        uint256 reward = traders[traderAddress].totalReward;
+        uint256 reward = traders[msg.sender].totalReward;
+        require(reward > 0, "Reward cannot be 0");
 
-        rewardContract.distributeReward(traderAddress, reward);
+        // Set the totalReward to 0 before distributing the reward
+        traders[msg.sender].totalReward = 0;
 
-        traders[traderAddress].earnedReward += reward;
-        traderPeriodStatus[traderAddress][currentPeriod] = false;
+        // Set the period status to false before distributing the reward
+        traderPeriodStatus[msg.sender][currentPeriod] = false;
+
+        // Distribute the reward
+        rewardContract.distributeReward(msg.sender, reward);
     }
 
     /// @notice Gets the cumulative trading volume of a trader
