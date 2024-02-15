@@ -1,32 +1,38 @@
 # Exchange Contract
 
-This Solidity contract serves as the backbone of an exchange platform, facilitating trading activities and rewarding traders based on their participation. Here's an overview of its functionalities:
+The Exchange Contract facilitates trading on the exchange and distributes rewards to traders.
 
-## Features:
+## Overview
 
-1. **Periodic Reward Distribution**: Traders are rewarded periodically based on their trading activity within each period.
+This contract is designed to manage trading positions and reward distribution based on trading activity within specific periods. It includes functionality for opening and closing positions, calculating rewards, claiming earned rewards, and querying trading and market volume data.
 
-2. **Trader Information Management**: The contract maintains essential information about traders, including their cumulative trading volume, last trade time, and total rewards earned.
+## Contract Details
 
-3. **Position Management**: Traders can open and close trading positions, specifying the volume and type (long or short) of each position.
+- **Periods**: The contract divides time into periods, with each period lasting 30 days.
+- **Reward Rate**: The reward rate per period is fixed at 387.
+- **Trader Structure**: Stores information about traders including their last trade time, cumulative trading volume, and total rewards earned.
+- **Period Structure**: Stores information about each period including the market volume and last trade time.
+- **Mappings**: Several mappings are used to store trader information, period information, and the status of traders' positions and volumes per period.
+- **Reward Contract Interface**: Utilizes an interface for the reward contract to distribute rewards to traders.
 
-4. **Reward Calculation and Distribution**: Rewards are calculated based on a predefined reward rate per period and distributed to traders accordingly.
+## Functions
 
-5. **Integration with Reward Contract**: The contract interfaces with an external reward contract (`IReward`) to facilitate the distribution of rewards.
+- **newPosition**: Allows traders to open or close trading positions.
+- **claimReward**: Allows traders to claim their earned rewards.
+- **getCumulativeTradingVolume**: Returns the cumulative trading volume of a trader.
+- **getTraderReward**: Returns the total reward earned by a trader.
+- **getTraderCurrentPeriodStatus**: Returns the status of a trader's position in the current period.
+- **getTraderCurrentPeriodVolume**: Returns the trading volume of a trader in the current period.
+- **getCumulativeMarketVolume**: Returns the cumulative market volume for a specific period.
+- **getCurrentPeriod**: Calculates the current period index based on the elapsed time since contract deployment.
 
-6. **Helper Functions**: Various helper functions are provided to retrieve trader information, such as cumulative trading volume, current period trading volume, position status, and cumulative market volume.
+## Constructor
 
-## Usage:
+The contract constructor initializes the exchange contract with the address of the reward contract.
 
-- **Constructor**: Upon deployment, the contract initializes with the address of the reward contract and sets the period start time.
+## Events
 
-- **Open Position**: Traders can open new trading positions by specifying the volume and type of position (long or short).
-
-- **Close Position**: Traders can close their existing trading positions by specifying the volume to close.
-
-- **Claim Reward**: Traders can claim their rewards, which are calculated based on their trading activity and the total market volume within each period.
-
-- **Helper Functions**: Several functions are provided to retrieve trader-related information and market volume data.
+- **NewPosition**: Fired when a trader opens or closes a trading position, providing details such as the trader's address, position type, and timestamp.
 
 # Reward Contract
 
