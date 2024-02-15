@@ -75,12 +75,8 @@ describe("ExchangeContract", function () {
   });
 
   it("Should amount be greater than 0 when opening a position", async function () {
-    const currentPeriod = formatEtherValue(
-      await exchangeContract.getCurrentPeriod()
-    );
-
     await expect(
-      exchangeContract.connect(trader2).openPosition(0, false)
+      exchangeContract.connect(trader2).newPosition(0, true, true)
     ).to.be.revertedWith("Volume cannot be 0");
   });
 
@@ -92,20 +88,37 @@ describe("ExchangeContract", function () {
 
       // T1
       let amount: bigint = ethers.parseEther("100000");
-      await exchangeContract.connect(trader1).openPosition(amount, true); // Trader1: open position 100K long
+      let isOpen: boolean = true;
+      let isLong: boolean = true;
+      await exchangeContract
+        .connect(trader1)
+        .newPosition(amount, isOpen, isLong); // Trader1: open position 100K long
 
       // T2
       amount = ethers.parseEther("50000");
-      await exchangeContract.connect(trader2).openPosition(amount, false); // Trader2: open position 50K short
+      isLong = false;
+      await exchangeContract
+        .connect(trader2)
+        .newPosition(amount, isOpen, isLong); // Trader2: open position 50K short
 
       // T3
       amount = ethers.parseEther("100000");
-      await exchangeContract.connect(trader3).openPosition(amount, true); // Trader3: open position 100K long
+      isLong = true;
+      await exchangeContract
+        .connect(trader3)
+        .newPosition(amount, isOpen, isLong); // Trader3: open position 100K long
 
       // T4
       amount = ethers.parseEther("25000");
-      await exchangeContract.connect(trader2).closePosition(amount); // Trader2: close 50% of position 25K long
-      await exchangeContract.connect(trader2).openPosition(amount, true);
+      isOpen = false;
+      await exchangeContract
+        .connect(trader2)
+        .newPosition(amount, isOpen, isLong); // Trader2: close 50% of position 25K long
+
+      isOpen = true;
+      await exchangeContract
+        .connect(trader2)
+        .newPosition(amount, isOpen, isLong);
 
       // Get cumulative trading volumes and cumulative market volume
       let cumulativeTradingVolume1: string = formatEtherValue(
@@ -150,13 +163,23 @@ describe("ExchangeContract", function () {
 
       // T5
       let amount: bigint = ethers.parseEther("100000");
-      await exchangeContract.connect(trader4).openPosition(amount, false); // Trader4: open position 100K short
+      let isOpen: boolean = true;
+      let isLong: boolean = false;
+      await exchangeContract
+        .connect(trader4)
+        .newPosition(amount, isOpen, isLong); // Trader4: open position 100K short
 
       // T6
       amount = ethers.parseEther("25000");
-      await exchangeContract.connect(trader2).openPosition(amount, true);
+      isLong = true;
+      await exchangeContract
+        .connect(trader2)
+        .newPosition(amount, isOpen, isLong);
       amount = ethers.parseEther("12500");
-      await exchangeContract.connect(trader2).closePosition(amount); // Trader2: close 50% of the rest of position 25K long
+      isOpen = false;
+      await exchangeContract
+        .connect(trader2)
+        .newPosition(amount, isOpen, isLong); // Trader2: close 50% of the rest of position 25K long
 
       // Get cumulative trading volumes and cumulative market volume
       let cumulativeTradingVolume1: string = formatEtherValue(
@@ -208,8 +231,15 @@ describe("ExchangeContract", function () {
 
       // T7
       let amount: bigint = ethers.parseEther("100000");
-      await exchangeContract.connect(trader1).openPosition(amount, false);
-      await exchangeContract.connect(trader1).closePosition(amount); // Trader1: close full position 100K short
+      let isOpen: boolean = true;
+      let isLong: boolean = false;
+      await exchangeContract
+        .connect(trader1)
+        .newPosition(amount, isOpen, isLong);
+      isOpen = false;
+      await exchangeContract
+        .connect(trader1)
+        .newPosition(amount, isOpen, isLong); // Trader1: close full position 100K short
 
       // Get cumulative trading volumes and cumulative market volume
       let cumulativeTradingVolume1: string = formatEtherValue(
@@ -356,8 +386,8 @@ describe("ExchangeContract", function () {
 
       expect(trader1Balance).greaterThan(0);
       expect(trader2Balance).greaterThan(0);
-      expect(trader3Balance).to.be.equal(0);
-      expect(trader4Balance).to.be.equal(0);
+      expect(trader3Balance).greaterThan(0);
+      expect(trader4Balance).greaterThan(0);
 
       // Should revert if reward for the period has already been distributed
       await expect(
