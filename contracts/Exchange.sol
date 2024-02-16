@@ -173,9 +173,9 @@ contract Exchange {
         return traders[traderAddress].cumulativeTradingVolume;
     }
 
-    /// @dev Retrieves the timestamp of the last trade made by a trader.
-    /// @param traderAddress The Ethereum address of the trader.
-    /// @return The timestamp (in Unix epoch time) of the last trade made by the trader.
+    /// @dev Retrieves the timestamp of the last trade made by a trader
+    /// @param traderAddress The Ethereum address of the trader
+    /// @return The timestamp (in Unix epoch time) of the last trade made by the trader
     function getTraderLastTradeTime(
         address traderAddress
     ) public view returns (uint256) {
