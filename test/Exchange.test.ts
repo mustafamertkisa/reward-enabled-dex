@@ -59,9 +59,6 @@ describe("ExchangeContract", function () {
       .connect(owner)
       .deploy(rewardContract.getAddress());
 
-    // Set the Exchange contract address in the Reward contract
-    await rewardContract.setExchangeContract(exchangeContract.getAddress());
-
     // Transfer total supply of MockToken to the Reward contract
     await mockTokenContract
       .connect(owner)
@@ -69,6 +66,27 @@ describe("ExchangeContract", function () {
         await rewardContract.getAddress(),
         await mockTokenContract.totalSupply()
       );
+  });
+
+  it("Should set the exchange contract address in the reward contract", async function () {
+    const exchangeContractAddress = await exchangeContract.getAddress();
+    const exchangeContractInReward = await rewardContract.getExchangeContract();
+
+    await expect(
+      rewardContract
+        .connect(trader1)
+        .setExchangeContract(exchangeContract.getAddress())
+    ).to.be.revertedWith("Only owner can call this function");
+
+    await rewardContract
+      .connect(owner)
+      .setExchangeContract(exchangeContract.getAddress());
+
+    const newExchangeContractInReward =
+      await rewardContract.getExchangeContract();
+
+    expect(exchangeContractInReward).to.be.not.equal(exchangeContractAddress);
+    expect(newExchangeContractInReward).to.be.equal(exchangeContractAddress);
   });
 
   it("Should only call exchange contract for distribute reward", async function () {
@@ -88,6 +106,11 @@ describe("ExchangeContract", function () {
   it("Should allow trading and claiming rewards over multiple periods", async function () {
     const periods = 100;
     let cumulativeVolume = 0;
+
+    const traderLastTradeTime = await exchangeContract.getTraderLastTradeTime(
+      trader1.address
+    );
+    expect(traderLastTradeTime).to.be.equal(0);
 
     // Perform trading actions and claim rewards over multiple periods
     for (let i = 0; i < periods; i++) {
@@ -135,6 +158,12 @@ describe("ExchangeContract", function () {
         trader5.address
       );
 
+      const newTraderLastTradeTime =
+        await exchangeContract.getTraderLastTradeTime(trader1.address);
+
+      expect(newTraderLastTradeTime).to.be.greaterThanOrEqual(
+        traderLastTradeTime
+      );
       expect(newTokenBalanceTrader5).to.be.greaterThan(tokenBalanceTrader5);
     }
   });
@@ -483,6 +512,35 @@ describe("ExchangeContract", function () {
       await expect(
         exchangeContract.connect(trader1).claimReward()
       ).to.be.revertedWith("Reward cannot be 0");
+    });
+
+    it("Should withdraw reward contract's balance to the owner", async function () {
+      // Get the initial balance of the owner
+      const initialBalance = await mockTokenContract.balanceOf(owner.address);
+
+      // Get the contract's balance before withdrawal
+      const contractBalanceBefore = await mockTokenContract.balanceOf(
+        rewardContract.getAddress()
+      );
+
+      await expect(
+        rewardContract.connect(trader1).withdraw()
+      ).to.be.revertedWith("Only owner can call this function");
+
+      // Call the withdraw function
+      await rewardContract.connect(owner).withdraw();
+
+      // Get the contract's balance after withdrawal
+      const contractBalanceAfter = await mockTokenContract.balanceOf(
+        rewardContract.getAddress()
+      );
+
+      // Get the final balance of the owner
+      const finalBalance = await mockTokenContract.balanceOf(owner.address);
+
+      // Assert that the contract's balance decreased and the owner's balance increased
+      expect(contractBalanceBefore).to.be.greaterThan(contractBalanceAfter);
+      expect(finalBalance).to.be.greaterThan(initialBalance);
     });
   });
 });

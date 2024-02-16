@@ -73,3 +73,20 @@ This Solidity contract implements a mock ERC20 token. It utilizes OpenZeppelin's
 - **Minting Tokens**: The initial supply of tokens (1,000,000) is minted and assigned to the contract owner upon deployment.
 
 - **Transfer and Balance**: Users can transfer tokens to other addresses and check their token balances using standard ERC20 functions.
+
+## Coverage
+
+-----------------------|----------|----------|----------|----------|----------------|
+File | % Stmts | % Branch | % Funcs | % Lines |Uncovered Lines |
+-----------------------|----------|----------|----------|----------|----------------|
+contracts/ | 97.56 | 80 | 100 | 95 | |
+Exchange.sol | 96.67 | 78.57 | 100 | 93.02 | 98,99,100 |
+Reward.sol | 100 | 81.25 | 100 | 100 | |
+contracts/interfaces/ | 100 | 100 | 100 | 100 | |
+IMockERC20.sol | 100 | 100 | 100 | 100 | |
+IReward.sol | 100 | 100 | 100 | 100 | |
+contracts/mocks/ | 100 | 100 | 100 | 100 | |
+MockToken.sol | 100 | 100 | 100 | 100 | |
+-----------------------|----------|----------|----------|----------|----------------|
+All files | 97.62 | 80 | 100 | 95.08 | |
+-----------------------|----------|----------|----------|----------|----------------|

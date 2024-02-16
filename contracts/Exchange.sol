@@ -36,7 +36,7 @@ contract Exchange {
     IReward public rewardContract;
 
     event NewPosition(
-        address trader,
+        address indexed trader,
         bool isOpen,
         bool isLong,
         uint256 timestamp
@@ -128,24 +128,6 @@ contract Exchange {
         rewardContract.distributeReward(msg.sender, reward);
     }
 
-    /// @notice Gets the cumulative trading volume of a trader
-    /// @param traderAddress Address of the trader
-    /// @return Cumulative trading volume of the trader
-    function getCumulativeTradingVolume(
-        address traderAddress
-    ) public view returns (uint256) {
-        return traders[traderAddress].cumulativeTradingVolume;
-    }
-
-    /// @notice Gets the total reward earned by a trader
-    /// @param traderAddress Address of the trader
-    /// @return Total reward earned by the trader
-    function getTraderReward(
-        address traderAddress
-    ) public view returns (uint256) {
-        return traders[traderAddress].totalReward;
-    }
-
     /// @notice Gets the status of a trader's position in the current period
     /// @param traderAddress Address of the trader
     /// @return Status of the trader's position in the current period
@@ -163,6 +145,30 @@ contract Exchange {
         uint256 currentPeriod = getCurrentPeriod();
 
         return traderPeriodVolume[traderAddress][currentPeriod];
+    }
+
+    /// @notice Gets the total reward earned by a trader
+    /// @param traderAddress Address of the trader
+    /// @return Total reward earned by the trader
+    function getTraderReward(
+        address traderAddress
+    ) public view returns (uint256) {
+        return traders[traderAddress].totalReward;
+    }
+
+    /// @notice Gets the cumulative trading volume of a trader
+    /// @param traderAddress Address of the trader
+    /// @return Cumulative trading volume of the trader
+    function getCumulativeTradingVolume(
+        address traderAddress
+    ) public view returns (uint256) {
+        return traders[traderAddress].cumulativeTradingVolume;
+    }
+
+    function getTraderLastTradeTime(
+        address traderAddress
+    ) public view returns (uint256) {
+        return traders[traderAddress].lastTradeTime;
     }
 
     /// @notice Gets the cumulative market volume for a specific period

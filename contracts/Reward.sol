@@ -9,7 +9,6 @@ import "./interfaces/IMockERC20.sol";
 contract Reward {
     address public owner; // Address of the contract owner
     address public exchangeContract; // Address of the associated exchange contract
-    uint256 public constant REWARD_RATE = 387; // Reward rate per period
 
     // Instance of the ERC20 token contract
     IMockERC20 public mockTokenContract;
@@ -85,8 +84,21 @@ contract Reward {
         return rewards[traderAddress];
     }
 
-    /// @notice Withdraws the contract's balance to the owner
+    /// @notice Withdraws the contract's ERC20 token balance to the owner
     function withdraw() external onlyOwner {
-        payable(owner).transfer(address(this).balance);
+        // Get the token balance of the reward contract
+        uint256 tokenBalance = mockTokenContract.balanceOf(address(this));
+
+        // Ensure the contract has enough tokens to withdraw
+        require(tokenBalance > 0, "No tokens to withdraw");
+
+        // Transfer the tokens to the owner
+        mockTokenContract.transfer(owner, tokenBalance);
+    }
+
+    /// @notice Gets the address of the associated exchange contract
+    /// @return Address of the exchange contract
+    function getExchangeContract() external view returns (address) {
+        return exchangeContract;
     }
 }
