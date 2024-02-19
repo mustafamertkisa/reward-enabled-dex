@@ -1,8 +1,10 @@
-# Exchange Contract
+# Reward Enabled DEX
 
 The Exchange Contract facilitates trading on the exchange and distributes rewards to traders.
 
-## Overview
+<br>
+
+# Exchange Contract
 
 This contract is designed to manage trading positions and reward distribution based on trading activity within specific periods. It includes functionality for opening and closing positions, calculating rewards, claiming earned rewards, and querying trading and market volume data.
 
@@ -17,14 +19,36 @@ This contract is designed to manage trading positions and reward distribution ba
 
 ## Functions
 
-- **newPosition**: Allows traders to open or close trading positions.
-- **claimReward**: Allows traders to claim their earned rewards.
-- **getCumulativeTradingVolume**: Returns the cumulative trading volume of a trader.
-- **getTraderReward**: Returns the total reward earned by a trader.
-- **getTraderCurrentPeriodStatus**: Returns the status of a trader's position in the current period.
-- **getTraderCurrentPeriodVolume**: Returns the trading volume of a trader in the current period.
-- **getCumulativeMarketVolume**: Returns the cumulative market volume for a specific period.
-- **getCurrentPeriod**: Calculates the current period index based on the elapsed time since contract deployment.
+1. **`newPosition`:**
+
+   - Allows traders to open or close trading positions.
+
+2. **`claimReward`:**
+
+   - Allows traders to claim their earned rewards.
+
+3. **`getCumulativeTradingVolume`:**
+
+   - Returns the cumulative trading volume of a trader.
+
+4. **`getTraderReward`:**
+
+   - Returns the total reward earned by a trader.
+
+5. **`getTraderCurrentPeriodStatus`:**
+
+   - Returns the status of a trader's position in the current period.
+
+6. **`getTraderCurrentPeriodVolume`:**
+
+   - Returns the trading volume of a trader in the current period.
+
+7. **`getCumulativeMarketVolume`:**
+
+   - Returns the cumulative market volume for a specific period.
+
+8. **`getCurrentPeriod`:**
+   - Calculates the current period index based on the elapsed time since contract deployment.
 
 ## Constructor
 
@@ -34,13 +58,13 @@ The contract constructor initializes the exchange contract with the address of t
 
 - **NewPosition**: Fired when a trader opens or closes a trading position, providing details such as the trader's address, position type, and timestamp.
 
-<br><br>
+<br>
 
 # Reward Contract
 
 This Solidity smart contract facilitates the distribution of rewards to traders based on their trading activity. It interacts with an ERC20 token contract to manage reward distribution. Below is an overview of its functionalities:
 
-## Contract Overview
+## Contract Details
 
 - **Owner:** The address that deployed the contract, which has privileged access to certain functions.
 - **Exchange Contract:** The associated exchange contract that interacts with this reward contract.
@@ -54,7 +78,7 @@ This Solidity smart contract facilitates the distribution of rewards to traders 
 
 ## Functions
 
-1. **Constructor:**
+1. **`Constructor`:**
 
    - Initializes the contract owner and the mock ERC20 token contract.
 
@@ -85,7 +109,7 @@ This Solidity smart contract facilitates the distribution of rewards to traders 
 4. Traders can retrieve their withdrawn rewards using `getTraderWithdrawnReward`.
 5. The owner can withdraw remaining tokens using `withdraw`.
 
-<br><br>
+<br>
 
 # MockToken Contract
 
