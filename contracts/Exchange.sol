@@ -73,17 +73,12 @@ contract Exchange {
     /// @param volume Volume of the trade
     /// @param currentPeriod Current period index
     function handleOpenPosition(uint256 volume, uint256 currentPeriod) private {
-        // Update the total market volume
         periods[currentPeriod].marketVolume += volume;
-        // Update the last trade time for the trader
         traders[msg.sender].lastTradeTime = block.timestamp;
-        // Update the cumulative trading volume for the trader
         traders[msg.sender].cumulativeTradingVolume += volume;
-        // Update the trading volume for the current period for the trader
         traderPeriodVolume[msg.sender][currentPeriod] += volume;
         // Calculate the reward for the trader
         calculateReward(msg.sender, volume);
-        // Update the last trade time for the current period
         periods[currentPeriod].lastTradeTime = traders[msg.sender]
             .lastTradeTime;
     }
